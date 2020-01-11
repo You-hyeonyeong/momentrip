@@ -9,6 +9,16 @@
             "date": 1578584041460,
             "name": "log/2020-01-10-smart-push.log",
             "hash": "932cb8e3d64161c2564b42c320aa9df5"
+        },
+        {
+            "date": 1578753502580,
+            "name": "log/2020-01-11-smart-push.log",
+            "hash": "1ed02ab7be32f747c6d9500a887dba2d"
+        },
+        {
+            "date": 1578754801403,
+            "name": "log/2020-01-12-smart-push.log",
+            "hash": "02e2bfd621a98eedf443bfc3c9ea702b"
         }
     ]
 }

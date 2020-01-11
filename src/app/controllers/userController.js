@@ -107,7 +107,6 @@ exports.signup = async function (req, res) {
         return res.status(500).send(`Error: ${err.message}`);
     }
 };
-
 /**
  update : 2019.11.01
  02.signIn API = 로그인
@@ -209,6 +208,11 @@ exports.signin = async function (req, res) {
         return false;
     }
 };
+// 구글로그인 구현 예정
+//exports.google = async function (req, res) { 
+//const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
+//}
+
 
 /**
  update : 2019.09.23
