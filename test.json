@@ -1,0 +1,79 @@
+{
+    "user" : {
+        "userInfo" : { 
+            "userInfoIdx": 34 ,
+            "id" : "test",
+            "profileImg": "https://~~",
+            "chatImg": "https://~~",
+            "battery" : 100,
+            "latitude" : 137.1232435,
+            "longitude" : 24.123456,
+            "tripmode" : 1599994328427358927789, 
+            "country" : "KR"
+        },
+        "friend": [ 
+            {
+                "userInfoIdx": 1,
+                "group": 0, 
+                "latitude" : 137.1232435,
+                "longitude" : 24.123456,
+                "distance" : "400" 
+            },
+            {
+                "userInfoIdx": 2,
+                "group": 1, 
+                "latitude" : 137.1232435,
+                "longitude" : 24.123456,
+                "distance" : "300" 
+            },
+            {
+                "userInfoIdx": 3,
+                "group": 0, 
+                "latitude" : 137.1232435,
+                "longitude" : 24.123456,
+                "distance" : "300" 
+            },
+            {
+                "userInfoIdx": 4,
+                "group": 2, 
+                "latitude" : 137.1232435,
+                "longitude" : 24.123456,
+                "distance" : "300"
+            }
+        ],
+        "chatMaxIdx": 11, 
+        "chat" : [ 
+            {
+                "chatRoomId" : 11,
+                "lastSentAt" : 1599994328427358927789,
+                "otherInfo" : {
+                    "userInfoIdx": 70 ,
+                    "id" : "test",
+                    "profileImg": "https://~~",
+                    "chatImg": "https://~~"
+                 },
+                 "chatHistory" : [
+                     {
+                        "message": "Hello",
+                        "type": "receiver",
+                        "messageAt" : 1599994328427358927789
+                     },
+                     {
+                        "message": "world",
+                        "type": "receiver",
+                        "messageAt" : 1599994328427358927789
+                     },
+                     {
+                        "message": "meeeetoo",
+                        "type": "sender",
+                        "messageAt" : 1599994328427358927789
+                     }
+                 ]
+            }
+        ]
+    }
+}
+
+
+    
+    
