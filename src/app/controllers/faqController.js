@@ -9,8 +9,8 @@ FAQ 전체 조회
 exports.getAllFaq= async function (req, res) {
     try {
         const selectFaqQuery = `
-                SELECT title, contents
-                FROM termsOfUse
+                SELECT faqIdx, question, answer
+                FROM faq
                 `; 
         const faqResult = await query(selectFaqQuery);
         res.send(utils.successTrue(200, "FAQ 조회 성공", faqResult));

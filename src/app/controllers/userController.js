@@ -1,8 +1,9 @@
 const { logger } = require('../../../config/winston');
 const { query } = require('../../../config/database');
+const { transaction } = require('../../../config/database');
+const { rtdb } = require('../../../modules/rtdbModule')
 
 const jwt = require('jsonwebtoken');
-const regexEmail = require('regex-email');
 const crypto = require('crypto');
 const secret_config = require('../../../config/secret');
 const utils = require('../../../modules/resModule')
@@ -37,21 +38,35 @@ exports.signup = async function (req, res) {
             if (!password) return res.send(utils.successFalse(302, "비밀번호를 입력 해주세요."));
             if (password.length < 4 || password.length > 20) return res.send(utils.successFalse(303, "비밀번호는 4~20자리를 입력해주세요."));
             else {
-                const hashedPwd = await crypto.createHash('sha512').update(password).digest('hex');
-                const insertUser = `
+                //회원가입 성공시 트랜젝션 처리
+                const signupProcess = await transaction(async (connection) => {
+                    const hashedPwd = await crypto.createHash('sha512').update(password).digest('hex');
+                    //유저 정보 생성
+                    const insertUser = `
                     INSERT INTO userInfo(id, password, phoneNum, gender, birthday, nation, platformType, isAllowedPush, deviceToken, firebaseToken, fcmToken)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `
-                const userResult = await query(insertUser, [id, hashedPwd, phoneNum, gender, birthday, nation, platformType, isAllowedPush, deviceToken, firebaseToken, fcmToken]);
-                console.log(userResult.insertId);
+                    const userResult = await connection.query(insertUser, [id, hashedPwd, phoneNum, gender, birthday, nation, platformType, isAllowedPush, deviceToken, firebaseToken, fcmToken]);
+                    console.log(userResult.insertId);
 
-                // 유저 그룹 생성
-                const insertGroup = `
+                    // 유저 그룹 생성
+                    const insertGroup = `
                     INSERT INTO colorGroup (userInfoIdx)
                     VALUES (?)
                 `;
-                const groupResult = await query(insertGroup, [userResult.insertId])
-                res.send(utils.successTrue(201, "회원가입 성공"));
+                    const groupResult = await connection.query(insertGroup, [userResult.insertId])
+
+                    //유저 배터리 생성
+                    const insertBattery = `
+                    INSERT INTO battery (userInfoIdx, variation, percents, type, current)
+                    VALUES (?, ?, ?, ?, ?)
+                `
+                    const batteryResult = await connection.query(insertBattery, [userResult.insertId, '+', 100, 'WELCOME',])
+                    // RTDB 유저정보 입력
+
+                });
+                if (signupProcess === undefined ) return res.send(utils.successFalse(300, "회원가입 실패~"));
+                else return res.send(utils.successTrue(201, "회원가입 성공"));
             }
         } catch (err) {
             logger.error(`App - signup Query error\n: ${err.message}`);
@@ -131,8 +146,8 @@ exports.idcheck = async function (req, res) {
         const idResult = await query(selectIdQuery, [id]);
         console.log(idResult.length);
         if (idResult.length > 0) return res.send(utils.successFalse(304, "아이디가 이미 사용중입니다"))
-        return res.send(utils.successTrue(200, "사용가능한 아이디 입니다."))
-        
+        return res.send(utils.successTrue(200, "사용 가능한 아이디 입니다."))
+
     } catch (err) {
         logger.error(`App - idcheck Query error\n: ${err.message}`);
         return res.send(utils.successFalse(500, `Error: ${err.message}`));
@@ -144,33 +159,44 @@ exports.idcheck = async function (req, res) {
  firebaseTest 
  */
 exports.firebase = async function (req, res) {
-    console.log("왔는데");
-
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        databaseURL: "https://halfmile-f9907.firebaseio.com"
-    });
-
-    var db = admin.database();
-    var user = db.ref("user")
-    var userInfo = user.child("userInfo")
+    const {
+        userInfoIdx, id, battery, nation
+    } = req.body;
+    var db = rtdb.database();
+    var test = db.ref("user")
+    var testtest = db.ref("user/-LzMUaTqsh-F7244Ycl4/userInfo")
+    const message = "테스트합니다."
     //작성하는거
-    userInfo.set({
-        "userInfoIdx": 1,
-        "id": "test",
-        "profileImg": "https://~~",
-        "chatImg": "https://~~",
-        "battery": 100
-    })
+    // 1. user 회원가입과 동시에 파이어베이스에 유저정보 입력하기
+    function writeUserInfo(userInfoIdx, id, battery, nation) {
+        test.push({
+            userInfoIdx: userInfoIdx,
+            id: id,
+            battery : battery,
+            nation : nation
+        });
+      }
+      function writeUseChat(userInfoIdx, id, battery, nation) {
+        testtest.push({
+            userInfoIdx: userInfoIdx,
+            id: id,
+            battery : battery,
+            nation : nation, 
+        });
+      }
+      //writeUserInfo(userInfoIdx, id, battery, nation)
+      writeUseChat(userInfoIdx, id, battery, nation)
+
+
+     // -LzMUaTqsh-F7244Ycl4
 
     //읽는거
-    var test = user.once("value", function (snapshot) {
-        console.log(snapshot.val());
-    }, function (errorObject) {
-        console.log("The read failed: " + errorObject.code);
-    })
-
-    console.log(test)
+    // test.once("child_added", function (snapshot) {
+    //     console.log(snapshot.val());
+    //     console.log(snapshot.key);
+    // }, function (errorObject) {
+    //     console.log("The read failed: " + errorObject.code);
+    // })
 
 }
 

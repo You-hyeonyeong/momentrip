@@ -13,8 +13,7 @@ exports.getAllNoti = async function (req, res) {
     try {
         const selectNoticeQuery = `
                 SELECT noticeIdx, contents, DATE_FORMAT(createdAt, '%Y.%m.%d %H:%i') as createdAt
-                FROM notice
-                WHERE type = "NOTI";
+                FROM notice;
                 `;
         const notiResult = await query(selectNoticeQuery);
         res.send(utils.successTrue(200, "전체 공지조회 성공", notiResult));
@@ -33,7 +32,7 @@ exports.getOneNoti = async function (req, res) {
         const selectNoticeQuery = `
                 SELECT noticeIdx, contents, DATE_FORMAT(createdAt, '%Y.%m.%d') as createdAt
                 FROM notice
-                WHERE type = "NOTI" AND noticeIdx = ?;
+                WHERE noticeIdx = ?;
                 `;
         const notiResult = await query(selectNoticeQuery,[req.params.noticeIdx]);
         res.send(utils.successTrue(200, "세부 공지조회 성공", notiResult[0]));
