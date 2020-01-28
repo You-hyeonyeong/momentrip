@@ -5,18 +5,10 @@ const scheduleModule = require('./modules/scheduleModule')
 
 const port = 3131;
 express().listen(port);
-
-schedule.scheduleJob('00 * * * *', function () {
-   
-});
-                
+          
 schedule.scheduleJob('0 * * * *', function () {
     scheduleModule.batteryDeduction();
     console.log('1시간마다 돌아가는 스케줄러');
 })
 
-schedule.scheduleJob('0 */12 * * *', function () {
-    logger.info('');
-    
-});
 logger.info(`${process.env.NODE_ENV} - API Server Start At Port ${port}`);

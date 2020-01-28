@@ -1,10 +1,8 @@
 {
-    "user" : {
-        "userInfo" : { 
+    "users" : {
+        "34" : { 
             "userInfoIdx": 34 ,
             "id" : "test",
-            "profileImg": "https://~~",
-            "chatImg": "https://~~",
             "battery" : 100,
             "latitude" : 137.1232435,
             "longitude" : 24.123456,
