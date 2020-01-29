@@ -1,12 +1,22 @@
 const { logger } = require('../../../config/winston');
 const { query } = require('../../../config/database');
 const { transaction } = require('../../../config/database');
-const { rtdb } = require('../../../modules/rtdbModule')
+const { userDB, chatDB, admin } = require('../../../modules/firebaseDBModule');
+const jwtMiddleware = require('../../../config/jwtMiddleware');
 
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const secret_config = require('../../../config/secret');
 const utils = require('../../../modules/resModule')
+
+
+/**
+ 2020.1.29
+jwtCheck
+ */
+exports.jwtCheck = async function (req, res) { 
+    res.send(utils.successTrue(200, "jwt 인증이 완료되었습니다."))
+}
 
 /**
  2020.1.22
@@ -64,8 +74,14 @@ exports.signup = async function (req, res) {
                     VALUES (?, ?, ?, ?)
                 `
             const batteryResult = await connection.query(insertBattery, [userResult.insertId, '+', 100, 'WELCOME'])
-            // RTDB 유저정보 입력
-
+            // fireDB 유저정보 입력 (트랜젝션 처리 포함 안됨)
+            const users = userDB.doc(`${userResult.insertId}`)
+            let message = users.set({
+                userInfoIdx: userResult.insertId,
+                battery: 100,
+                latitude: null,
+                longitude: null
+            });
         });
         if (signupProcess === "fail") {
             logger.info("회원가입 트렌젝션 실패")
@@ -170,6 +186,7 @@ exports.phoneCheck = async function (req, res) {
 /**
  2020.01.26
 phoneNum API = 전화번호 인증
+해당 유저의 핸드폰 번호가 맞는지 확인하는 작업도 필요
  */
 exports.phoneNum = async function (req, res) {
     const userInfoIdx = req.verifiedToken.userInfoIdx

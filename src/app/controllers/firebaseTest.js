@@ -1,22 +1,57 @@
 const { logger } = require('../../../config/winston');
 const { query } = require('../../../config/database');
 const { transaction } = require('../../../config/database');
-const { firebaseDB } = require('../../../modules/rtdbModule')
+const { userDB, chatDB, admin } = require('../../../modules/firebaseDBModule')
 
 const utils = require('../../../modules/resModule')
 
 
 
 exports.test = async function (req, res) {
-    
-    let db = firebaseDB.firestore();
-    const userInfoIdx = 3
+        userDB.get()
+            .then((snapshot) => {
+                snapshot.forEach((doc) => {
+                    console.log(doc.id , doc.data());
+                });
+            })
+            .catch((err) => {
+                console.log('Error getting documents', err);
+            });
 
-    let docRef = db.collection('users').doc(`${userInfoIdx}`);
-    let setAda = docRef.set({
-        latitude: '37.2222',
-        longitude: '231.2222'
-    });
-    return res.send(utils.successTrue(200, "firebaseDB 추가 완료"))
+            userDB.doc('22').update({battery : admin.firestore.FieldValue.increment(-10) })
+    return res.send(utils.successTrue(200, "firebaseDB 조회 완료"))
+}
 
+exports.minusTest = async function (req, res) {
+    //단순 데이터 읽기
+    // userDB.get()
+    //     .then((snapshot) => {
+    //         snapshot.forEach((doc) => {
+    //             console.log(doc.id , doc.data());
+    //         });
+    //     })
+    //     .catch((err) => {
+    //         console.log('Error getting documents', err);
+    //     });
+
+        const selectUser = await query(`
+            SELECT userInfoIdx 
+            FROM userInfo 
+            WHERE hour(createdAt)+1 <> hour(NOW()) AND status = 'ACTIVE' AND battery > 0;`)
+            console.log(selectUser.length + "ssssss")
+
+            selectUser.forEach(async (user) => {
+                console.log(user.userInfoIdx);
+                //뽑아낸 유저 돌면서 insert history
+                const tenPercentMinus = await query(`
+                INSERT INTO battery (userInfoIdx, variation, percents, type) VALUES (?, ?, ?, ?)`,[user.userInfoIdx, '-', 10, 'SCEDULE' ])
+
+                //뽑아낸 유저 돌면서 firebase에서 배터리 감소
+                userDB.doc(`${user.userInfoIdx}`).update({battery : admin.firestore.FieldValue.increment(-10)})
+            })
+
+        //userDB.doc(`${유저인덱스}`).update({battery : admin.firestore.FieldValue.increment(-10) })
+
+        //userDB.doc('22').update({battery : admin.firestore.FieldValue.increment(-10) })
+        return res.send(utils.successTrue(200, "firebaseDB 테스트중"))
 }
