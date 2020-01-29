@@ -6,7 +6,7 @@ const utils = require('../../../modules/resModule')
 2020.01.26
 컬러 그룹 조회
  */
-exports.getGroup = async function (req, res) {
+exports.getColorGroup = async function (req, res) {
     const userInfoIdx = req.verifiedToken.userInfoIdx
     try {
         const groupQuery = `

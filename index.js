@@ -7,7 +7,7 @@ const port = 3131;
 express().listen(port);
           
 schedule.scheduleJob('0 * * * *', function () {
-    scheduleModule.batteryDeduction();
+    scheduleModule.minusBatteryPerHour();
     console.log('1시간마다 돌아가는 스케줄러');
 })
 

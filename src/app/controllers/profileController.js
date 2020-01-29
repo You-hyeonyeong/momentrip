@@ -1,7 +1,7 @@
 const { logger } = require('../../../config/winston');
 const { query } = require('../../../config/database');
 const { transaction } = require('../../../config/database');
-const { rtdb } = require('../../../modules/rtdbModule')
+const { firebaseDB } = require('../../../modules/firebaseDBModule')
 
 const utils = require('../../../modules/resModule')
 
