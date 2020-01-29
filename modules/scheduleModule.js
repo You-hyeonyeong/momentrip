@@ -29,6 +29,22 @@ exports.minusBatteryPerHour = async function (req, res) {
     })
     logger.info("-10% battery once an hour")
 }
+//2. 휴면계정 체크
+//마지막 접속시간와 현재 접속시간과 비교하여 30일이 지났으면 휴면경고 알람
+exports.checkInactiveUser = async function (req, res) {
+    const inactiveUserQuery = await query(`SELECT userInfoIdx, id
+                            FROM userInfo
+                            WHERE status = 'ACTIVE'
+                            AND WHERE timestampdiff(hour, userInfo.lastLoginAt, now()) = 720;`)
+
+    //inactiveUserQuery.userInfoIdx 사람들에게 push 메시지 보내기
+    //push 메시지 히스토리 쌓이기
+    logger.info("inactive member warning push message")
+}
+
+
+
+
 //2.회원 미접속 30일 알람
 //마지막 접속시간와 현재 접속시간과 비교하여 30일이 지났으면 휴면경고 알람
 exports.alarmThirtyDay = async function (req, res) {

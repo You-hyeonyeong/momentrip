@@ -11,4 +11,9 @@ schedule.scheduleJob('0 * * * *', function () {
     console.log('1시간마다 돌아가는 스케줄러');
 })
 
+schedule.scheduleJob('0 0 * * *', function () {
+    scheduleModule.checkInactiveUser();
+    console.log('자정에 돌아가는 스케줄러');
+})
+
 logger.info(`${process.env.NODE_ENV} - API Server Start At Port ${port}`);
