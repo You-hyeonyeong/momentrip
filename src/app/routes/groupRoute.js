@@ -3,6 +3,7 @@ module.exports = function(app){
     const jwtMiddleware = require('../../../config/jwtMiddleware');
 
     app.get('/app/colorgroup', jwtMiddleware, group.getColorGroup);
+    app.route('/app/groupname').patch(jwtMiddleware, group.changeGroupName);
 
 
 };
