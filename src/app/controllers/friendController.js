@@ -124,7 +124,7 @@ exports.getNotFriends = async function (req, res) {
         const friendsResult = await query(friendsQuery, [userInfoIdx]);
         res.send(utils.successTrue(200, "친구 요청 조회 성공", friendsResult));
     } catch (err) {
-        logger.error(`App - getFriends Query error\n: ${err.message}`);
+        logger.error(`App - getNotFriends Query error\n: ${err.message}`);
         return res.send(utils.successFalse(500, `Error: ${err.message}`));
     }
 };

@@ -19,6 +19,7 @@ exports.minusBatteryPerHour = async function (req, res) {
             FROM userInfo 
             WHERE hour(createdAt)+1 <> hour(NOW()) AND status = 'ACTIVE' AND battery > 0;`)
 
+            //enumerated for iterater
     selectUser.forEach(async (user) => {
         //console.log(user.userInfoIdx);
         //battery 에 history 남기기

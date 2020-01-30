@@ -15,7 +15,8 @@ const utils = require('../../../modules/resModule')
 jwtCheck
  */
 exports.jwtCheck = async function (req, res) { 
-    res.send(utils.successTrue(200, "jwt 인증이 완료되었습니다."))
+    const userInfoIdx = req.verifiedToken.userInfoIdx
+    return res.send(utils.successTrue(200, "jwt 인증이 완료되었습니다.", userInfoIdx))
 }
 
 /**
@@ -43,15 +44,14 @@ exports.signup = async function (req, res) {
         const idResult = await query(selectIdQuery, [id]);
         if (idResult.length > 0) return res.send(utils.successFalse(305, "아이디가 이미 사용중입니다."));
         // 전화번호 중복 확인
-        const selectPhoneQuery = `
-                SELECT phoneNum 
-                FROM userInfo 
-                WHERE id = ?
-                AND status != 'DELETE';
-                `;
-        const phoneResult = await query(selectPhoneQuery, [phoneNum]);
-        if (phoneResult.length > 0) return res.send(utils.successFalse(306, "동일한 전화번호로 가입된 아이디가 있습니다"));
-
+        const selectPhone = await query(`SELECT userInfoIdx
+                            FROM userInfo WHERE phoneNum = ? AND status != 'DELETE';`, [phoneNum])
+        console.log(`동일전화번호 가진사람 : ${selectPhone.length} 명`)
+        if (selectPhone.length == 1) {
+            //전화번호 동일하다고 뽑힌 사람의 userInfoIdx 의 status를 DELETE로
+            const preAccountDel = await query(`UPDATE userInfo SET status = 'DELETE' WHERE userInfoIdx = ?;`, [selectPhone[0].userInfoIdx])
+            logger.info(`기존계정 ${selectPhone[0].userInfoIdx}를 탈퇴 시키고 새로운 계정 만들겠습니다.`)
+        }
         //회원가입 성공시 트랜젝션 처리
         const signupProcess = await transaction(async (connection) => {
             const hashedPwd = await crypto.createHash('sha512').update(password).digest('hex');
@@ -61,7 +61,6 @@ exports.signup = async function (req, res) {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `
             const userResult = await connection.query(insertUser, [id, hashedPwd, phoneNum, gender, birthday, nation, platformType, isAllowedPush, firebaseToken, fcmToken, cerificationNum]);
-
             // 유저 그룹 생성
             const insertGroup = `
                     INSERT INTO colorGroup (userInfoIdx)
@@ -87,7 +86,10 @@ exports.signup = async function (req, res) {
             logger.info("회원가입 트렌젝션 실패")
             return res.send(utils.successFalse(400, "회원가입 실패"));
         }
-        else return res.send(utils.successTrue(201, "회원가입 성공"));
+        else {
+            logger.info("회원가입 성공")
+            return res.send(utils.successTrue(201, "회원가입 성공"));
+        }
     } catch (err) {
         logger.error(`App - signup error\n: ${err.message}`);
         return res.send(utils.successFalse(500, `Error: ${err.message}`));
@@ -135,7 +137,11 @@ exports.signin = async function (req, res) {
                 //마지막 접속시간 업데이트
                 const lastloginResult = await query(`UPDATE userInfo SET lastLoginAt = current_timestamp WHERE userInfoIdx = ? ;`, [userResult[0].userInfoIdx])
                 logger.info(`idx: ${userResult[0].userInfoIdx}, id: ${userResult[0].id} 로그인 성공`)
-                res.send(utils.successTrue(200, "로그인 성공", token));
+                const user = {
+                    "token" : token,
+                    "userInfoIdx" : userResult[0].userInfoIdx
+                }
+                res.send(utils.successTrue(200, "로그인 성공", user));
             }
         }
     } catch (err) {
@@ -172,6 +178,7 @@ phoneCheck API = 핸드폰 번호 중복확인
  */
 exports.phoneCheck = async function (req, res) {
     const phoneNum = req.body.phoneNum;
+    if(!phoneNum)  return res.send(utils.successTrue(302, "핸드폰 번호를 입력해주세요"))
     try {
         const selectPhone = await query(`SELECT userInfoIdx, id, phoneNum, status FROM userInfo WHERE phoneNum = ? AND status != 'DELETE';`, [phoneNum])
         console.log(selectPhone.length);
@@ -186,7 +193,6 @@ exports.phoneCheck = async function (req, res) {
 /**
  2020.01.26
 phoneNum API = 전화번호 인증
-해당 유저의 핸드폰 번호가 맞는지 확인하는 작업도 필요
  */
 exports.phoneNum = async function (req, res) {
     const userInfoIdx = req.verifiedToken.userInfoIdx
@@ -194,15 +200,25 @@ exports.phoneNum = async function (req, res) {
     const cerificationNum = req.body.cerificationNum
     if(!phoneNum || !cerificationNum ) return res.send(utils.successFalse(302, "전화번호와 인증횟수를 같이 보내주세요"))
     try {
-        const userQuery = `SELECT userInfoIdx, id FROM userInfo WHERE userInfoIdx = ?`
-        const userResult = await query(userQuery, [userInfoIdx])
-
-        if (userResult.length == 1) {
-            //update phoneNum
-            const updatePhoneQuery = `UPDATE userInfo SET phoneNum = ?, cerificationNum = cerificationNum + ? WHERE userInfoIdx = ?`
-            const updatePhoneResult = await query(updatePhoneQuery, [phoneNum, cerificationNum, userInfoIdx])
-            return res.send(utils.successTrue(200, "전화번호 인증 완료", userResult[0]))
-        } else return res.send(utils.successFalse(301, "등록되어 있지 않은 회원입니다."))
+        const userPhoneQuery = await query(`SELECT userInfoIdx, id FROM userInfo WHERE userInfoIdx = ? AND phoneNum = ?`,[userInfoIdx, phoneNum])
+        if(userPhoneQuery.length == 1) {
+            logger.info(`기존정보로 전화번호 인증완료`)
+            return res.send(utils.successTrue(200, "전화번호 인증 완료"))
+        } else {
+            const userPhoneResult = await query(`SELECT userInfoIdx, id FROM userInfo WHERE phoneNum = ? AND status != 'DELETE';`, [phoneNum])
+            if(userPhoneResult.length > 0) {
+                const preAccountDel = await query(`UPDATE userInfo SET status = 'DELETE' WHERE userInfoIdx = ? AND userInfoIdx != ?;`, [userPhoneResult[0].userInfoIdx, userInfoIdx ])
+                logger.info(`기존계정 ${userPhoneResult[0].userInfoIdx}를 탈퇴 시켰습니다`)
+                const updatePhoneQuery = `UPDATE userInfo SET phoneNum = ?, cerificationNum = cerificationNum + ? WHERE userInfoIdx = ?`
+                const updatePhoneResult = await query(updatePhoneQuery, [phoneNum, cerificationNum, userInfoIdx])
+                return res.send(utils.successTrue(201, "기존 정보 삭제 후 완료"))
+            } else {
+                const updatePhoneQuery = `UPDATE userInfo SET phoneNum = ?, cerificationNum = cerificationNum + ? WHERE userInfoIdx = ?`
+                const updatePhoneResult = await query(updatePhoneQuery, [phoneNum, cerificationNum, userInfoIdx])
+                logger.info(`업데이트 후 전화번호 인증완료`)
+                return res.send(utils.successTrue(202, "업데이트 전화번호 인증 완료"))
+            }
+        }
     } catch (err) {
         logger.error(`App - phoneNum Query error\n: ${err.message}`);
         return res.send(utils.successFalse(500, `Error: ${err.message}`));
