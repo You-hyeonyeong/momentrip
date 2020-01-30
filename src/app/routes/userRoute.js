@@ -9,12 +9,5 @@ module.exports = function(app){
     app.route('/app/idcheck').post(user.idCheck);
     app.route('/app/phonecheck').post(user.phoneCheck);
     app.route('/app/phonenum').post(jwtMiddleware, user.phoneNum);
-    app.route('/app/preaccount').delete(user.preAccount);
-    
-   
-    app.route('/app/firetest').post(firebase.test);
-    app.route('/app/minus').post(firebase.minusTest);
-
-   
 
 };

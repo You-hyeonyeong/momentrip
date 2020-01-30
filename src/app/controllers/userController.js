@@ -121,7 +121,7 @@ exports.signin = async function (req, res) {
             }
             const hashedPwd = await crypto.createHash('sha512').update(password).digest('hex');
             if (userResult[0].password !== hashedPwd) {
-                return res.send(utils.successFalse(306, "아이디와 비밀번호를 확인해주세요"));
+                return res.send(utils.successFalse(304, "아이디와 비밀번호를 확인해주세요"));
             } else {
                 //토큰 생성
                 let token = await jwt.sign({
@@ -183,7 +183,8 @@ exports.phoneCheck = async function (req, res) {
         const selectPhone = await query(`SELECT userInfoIdx, id, phoneNum, status FROM userInfo WHERE phoneNum = ? AND status != 'DELETE';`, [phoneNum])
         console.log(selectPhone.length);
         if (selectPhone.length == 0) return res.send(utils.successFalse(301, "사용 가능한 전화번호 입니다."))
-        return res.send(utils.successTrue(200, "동일한 전화번호로 가입된 아이디가 있습니다.", selectPhone[0]))
+        logger.info(`${selectPhone[0].userInfoIdx} 와 동일한 전화번호로 가입시도`)
+        return res.send(utils.successTrue(200, "동일한 전화번호로 가입된 아이디가 있습니다."))
 
     } catch (err) {
         logger.error(`App - phoneCheck Query error\n: ${err.message}`);
@@ -198,7 +199,7 @@ exports.phoneNum = async function (req, res) {
     const userInfoIdx = req.verifiedToken.userInfoIdx
     const phoneNum = req.body.phoneNum;
     const cerificationNum = req.body.cerificationNum
-    if(!phoneNum || !cerificationNum ) return res.send(utils.successFalse(302, "전화번호와 인증횟수를 같이 보내주세요"))
+    if(!phoneNum || !cerificationNum ) return res.send(utils.successFalse(301, "전화번호와 인증횟수를 같이 보내주세요"))
     try {
         const userPhoneQuery = await query(`SELECT userInfoIdx, id FROM userInfo WHERE userInfoIdx = ? AND phoneNum = ?`,[userInfoIdx, phoneNum])
         if(userPhoneQuery.length == 1) {
@@ -216,7 +217,7 @@ exports.phoneNum = async function (req, res) {
                 const updatePhoneQuery = `UPDATE userInfo SET phoneNum = ?, cerificationNum = cerificationNum + ? WHERE userInfoIdx = ?`
                 const updatePhoneResult = await query(updatePhoneQuery, [phoneNum, cerificationNum, userInfoIdx])
                 logger.info(`업데이트 후 전화번호 인증완료`)
-                return res.send(utils.successTrue(202, "업데이트 전화번호 인증 완료"))
+                return res.send(utils.successTrue(202, "업데이트 후 전화번호 인증 완료"))
             }
         }
     } catch (err) {
@@ -224,106 +225,3 @@ exports.phoneNum = async function (req, res) {
         return res.send(utils.successFalse(500, `Error: ${err.message}`));
     }
 }
-/**
- 2020.01.27
-preAccount API = 기존회원의 이전 계정 삭제
- */
-exports.preAccount = async function (req, res) {
-    const phoneNum = req.body.phoneNum;
-    try {
-        const selectPhone = await query(`SELECT userInfoIdx, id, phoneNum, status FROM userInfo WHERE phoneNum = ? AND status != 'DELETE'`, [phoneNum])
-        if (selectPhone.length == 0) return res.send(utils.successFalse(301, "기존 계정이 존재하지 않습니다."))
-        const updatePhoneQuery = `
-            UPDATE userInfo
-            SET status = 'DELETE'
-            WHERE phoneNum = ?;
-            `;
-        const phoneNumResult = await query(updatePhoneQuery, [phoneNum]);
-        return res.send(utils.successTrue(200, "기존 계정을 삭제 했습니다.", selectPhone[0]))
-
-    } catch (err) {
-        logger.error(`App - preAccount Query error\n: ${err.message}`);
-        return res.send(utils.successFalse(500, `Error: ${err.message}`));
-    }
-}
-
-
-/**
- 2020.1.22
- firebaseTest 
- */
-exports.firebase = async function (req, res) {
-    const {
-        userInfoIdx, id, battery, nation, group
-    } = req.body;
-    var database = rtdb.database();
-    var userDB = database.ref("user");
-
-    const message = "테스트합니다."
-    //작성하는거
-    // 1. user 회원가입과 동시에 파이어베이스에 유저정보 입력하기
-    //userInfoIdx, 
-    function writeUserInfo(userInfoIdx, id, battery, nation) {
-        const result = userDB.push({
-            userInfo: {
-                userInfoIdx: userInfoIdx,
-                id: id,
-                battery: battery,
-                nation: nation,
-            }
-        });
-        return res.send(utils.successTrue(200, "RTDB 추가 완료", result))
-    }
-    //writeUserInfo(userInfoIdx, id, battery, nation);
-
-    // 위의 userInfoIdx = 2 인 사람의 채팅방이 추가되었다고 했을때
-
-    function writeUserInfo(userInfoIdx, id, battery, nation) {
-        const result = userDB.push({
-            userInfo: {
-                userInfoIdx: userInfoIdx,
-                id: id,
-                battery: battery,
-                nation: nation,
-            }
-        });
-        return res.send(utils.successTrue(200, "RTDB 유저정보 추가 완료", result))
-    }
-
-    var userFriendDB = database.ref("user/-Lz_ISPpMBxRjL9NWi60/friends");
-    function writeUserFriendInfo(userInfoIdx, group) {
-        const result = userFriendDB.push(
-            {
-                userInfoIdx: userInfoIdx,
-                group: group
-            });
-        userFriendDB.on("value", function (snapshot) {
-            console.log(snapshot.getPriority())
-            console.log(snapshot.val().key)
-
-
-        })
-        return res.send(utils.successTrue(200, "RTDB 친구 추가 완료", result))
-    }
-    writeUserFriendInfo(userInfoIdx, group);
-
-}
-// function writeUseChat(userInfoIdx, id, battery, nation) {
-//     testtest.push({
-//         userInfoIdx: userInfoIdx,
-//         id: id,
-//         battery: battery,
-//         nation: nation,
-//     });
-// }
-
-
-// test.once("child_changed", function (snapshot) {
-//     console.log(snapshot.val());
-//     console.log(snapshot.key);
-// }, function (errorObject) {
-//     console.log("The read failed: " + errorObject.code);
-// })
-
-
-
