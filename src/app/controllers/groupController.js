@@ -9,20 +9,21 @@ const utils = require('../../../modules/resModule')
 exports.getColorGroup = async function (req, res) {
     const userInfoIdx = req.verifiedToken.userInfoIdx
     try {
+        const customName = await query(`select blue, red, yellow, green, purple from colorGroup where userInfoIdx = ?;`,[userInfoIdx]) //이름
         const groupQuery = `
         SELECT colorGroup.blue, colorGroup.red, colorGroup.yellow, colorGroup.green, colorGroup.purple,
-            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND groupName = 'BLUE') as blueNum,
-            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND groupName = 'RED') as redNum,
-            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND groupName = 'YELLOW') as yellowNum,
-            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND groupName = 'GREEN') as greenNum,
-            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND groupName = 'PURPLE') as purpleNum
+            (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'blue' AND status = 'FRIEND') as blueNum,
+            (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'red' AND status = 'FRIEND') as redNum,
+            (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'yellow' AND status = 'FRIEND') as yellowNum,
+            (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'green' AND status = 'FRIEND') as greenNum,
+            (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'purple' AND status = 'FRIEND') as purpleNum
         FROM colorGroup
         WHERE userInfoIdx = ?;
-            `;
-        const groupResult = await query(groupQuery, [userInfoIdx]);
-        res.send(utils.successTrue(200, "전체 그룹조회 성공", groupResult));
+        `;
+        const groupResult = await query(groupQuery, [userInfoIdx, userInfoIdx, userInfoIdx, userInfoIdx, userInfoIdx, userInfoIdx]);
+        return res.send(utils.successTrue(200, "전체 그룹조회 성공", groupResult[0]));
     } catch (err) {
-        logger.error(`App - Query error\n: ${err.message}`);
+        logger.error(`App - getColorGroup error\n: ${err.message}`);
         return res.send(utils.successFalse(500, `Error: ${err.message}`));
     }
 };
