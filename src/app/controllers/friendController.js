@@ -114,42 +114,42 @@ exports.resFriends = async function (req, res) {
 exports.rejFriends = async function (req, res) {
     const responser = req.verifiedToken.userInfoIdx
     const requester = req.body.requester
-    logger.info(`resFriend - res:${responser}/ req:${requester}`)
+    logger.info(`rejFriend - res:${responser}/ req:${requester}`)
     try {
           //자신에게 보낼때
          if (requester === responser) return res.send(utils.successFalse(303, "자신의 요청을 받을수 없습니다."));
           //응답자가 존재하는 사람인지 확인
         const isUser = await query(`SELECT userInfoIdx FROM userInfo WHERE userInfoIdx = ? AND status != 'DELETE'`, [requester])
         if (isUser.length === 0) return res.send(utils.successFalse(302, "존재하지 않는 사람입니다."));
+        //이전에 관계가 있는지 확인
+        const isRel = await query(`SELECT responser FROM friends WHERE requester = ? AND responser = ? AND status != 'REJECT'`, [requester, responser])
+        if (isRel.length == 0) return res.send(utils.successFalse(304, "요청받은 내역이 없습니다."));
         //요청받은게 있는지 확인
-        const isReq = await query(`SELECT responser FROM friends WHERE requester = ? AND responser = ? AND status != 'FRIEND'`, [requester, responser])
-
-        if (isReq.length == 0) return res.send(utils.successFalse(301, "요청 받은 내역이 없습니다."));
-        // const isFriend = await query(`SELECT responser FROM friends WHERE requester = ? AND responser = ? AND status = 'FRIEND'`, [responser, requester])
-        // if (isFriend.length > 0) return res.send(utils.successFalse(302, "이미 친구상태 입니다."));
+        const isReq = await query(`SELECT responser FROM friends WHERE requester = ? AND responser = ? AND status = 'REJECT'`, [requester, responser])
+        if (isReq.length == 1) return res.send(utils.successFalse(301, "이미 거절한 요청입니다."));
         const friend = await transaction(async (connection) => {
             const getFriendsName = await query(`SELECT id FROM userInfo WHERE userInfoIdx = ?`, [requester])
             //응답자 해당하는 컬럼 하나 추가
             const resFriendsQuery = await connection.query(`INSERT INTO friends(requester, responser, responserName, status, responseAt) 
-                                                            VALUES (?, ?, ?, 'FRIEND', current_timestamp);`, [responser, requester, getFriendsName[0].id])
+                                                            VALUES (?, ?, ?, 'REJECT', current_timestamp);`, [responser, requester, getFriendsName[0].id])
             //요청자 상태 변경
-            const updateRequester = await connection.query(`UPDATE friends SET status = 'FRIEND' WHERE responser = ? AND requester = ?;`, [responser, requester])
+            const updateRequester = await connection.query(`UPDATE friends SET status = 'REJECT' WHERE responser = ? AND requester = ?;`, [responser, requester])
         });
 
         if (friend === "fail") {
             logger.info("트렌젝션 실패");
-            return res.send(utils.successFalse(301, "친구 요청 수락 실패"));
-        } else return res.send(utils.successTrue(200, "친구 요청 수락 성공"));
+            return res.send(utils.successFalse(301, "친구 요청 거절 실패"));
+        } else return res.send(utils.successTrue(200, "친구 요청 거절 성공"));
 
     } catch (err) {
-        logger.error(`App - resFriends Query error\n: ${err.message}`);
+        logger.error(`App - rejFriends Query error\n: ${err.message}`);
         return res.send(utils.successFalse(500, `Error: ${err.message}`));
     }
 }
 
 /**
 2020.01.
-아직 친구아닌 사람조회
+아직 친구아닌 (요청중/ 대기중) 사람조회
 status != 'FRIEND'
 */
 exports.getNotFriends = async function (req, res) {
@@ -170,18 +170,6 @@ exports.getNotFriends = async function (req, res) {
     }
 };
 
-
-/**
-2020.01.
-전화번호로 친구 검색
-*/
-
-/**
-2020.01.
-아이디로 친구 검색
-*/
-
-//응답대기중인 친구 조회
 /**
 2020.01.
 친구 이름 변경
