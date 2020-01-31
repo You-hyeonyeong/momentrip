@@ -11,11 +11,11 @@ exports.getColorGroup = async function (req, res) {
     try {
         const groupQuery = `
         SELECT colorGroup.blue, colorGroup.red, colorGroup.yellow, colorGroup.green, colorGroup.purple,
-            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND group = 'BLUE') as blueNum,
-            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND group = 'RED') as redNum,
-            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND group = 'YELLOW') as yellowNum,
-            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND group = 'GREEN') as greenNum,
-            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND group = 'PURPLE') as purpleNum
+            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND groupName = 'BLUE') as blueNum,
+            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND groupName = 'RED') as redNum,
+            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND groupName = 'YELLOW') as yellowNum,
+            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND groupName = 'GREEN') as greenNum,
+            (SELECT count(1) FROM friends WHERE userInfoIdx = ? AND groupName = 'PURPLE') as purpleNum
         FROM colorGroup
         WHERE userInfoIdx = ?;
             `;

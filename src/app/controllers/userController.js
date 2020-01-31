@@ -203,6 +203,8 @@ exports.phoneNum = async function (req, res) {
     try {
         const userPhoneQuery = await query(`SELECT userInfoIdx, id FROM userInfo WHERE userInfoIdx = ? AND phoneNum = ?`,[userInfoIdx, phoneNum])
         if(userPhoneQuery.length == 1) {
+            const updatePhoneQuery = `UPDATE userInfo SET certificationNum = certificationNum + ? WHERE userInfoIdx = ?`
+            const updatePhoneResult = await query(updatePhoneQuery, [cerificationNum, userInfoIdx])
             logger.info(`기존정보로 전화번호 인증완료`)
             return res.send(utils.successTrue(200, "전화번호 인증 완료"))
         } else {
@@ -210,11 +212,11 @@ exports.phoneNum = async function (req, res) {
             if(userPhoneResult.length > 0) {
                 const preAccountDel = await query(`UPDATE userInfo SET status = 'DELETE' WHERE userInfoIdx = ? AND userInfoIdx != ?;`, [userPhoneResult[0].userInfoIdx, userInfoIdx ])
                 logger.info(`기존계정 ${userPhoneResult[0].userInfoIdx}를 탈퇴 시켰습니다`)
-                const updatePhoneQuery = `UPDATE userInfo SET phoneNum = ?, cerificationNum = cerificationNum + ? WHERE userInfoIdx = ?`
+                const updatePhoneQuery = `UPDATE userInfo SET phoneNum = ?, certificationNum = certificationNum + ? WHERE userInfoIdx = ?`
                 const updatePhoneResult = await query(updatePhoneQuery, [phoneNum, cerificationNum, userInfoIdx])
                 return res.send(utils.successTrue(201, "기존 정보 삭제 후 완료"))
             } else {
-                const updatePhoneQuery = `UPDATE userInfo SET phoneNum = ?, cerificationNum = cerificationNum + ? WHERE userInfoIdx = ?`
+                const updatePhoneQuery = `UPDATE userInfo SET phoneNum = ?, certificationNum = certificationNum + ? WHERE userInfoIdx = ?`
                 const updatePhoneResult = await query(updatePhoneQuery, [phoneNum, cerificationNum, userInfoIdx])
                 logger.info(`업데이트 후 전화번호 인증완료`)
                 return res.send(utils.successTrue(202, "업데이트 후 전화번호 인증 완료"))
