@@ -18,10 +18,10 @@ exports.getFriends = async function (req, res) {
             WHERE f.requester = ? AND f.status = 'FRIEND' ;
             `;
         const friendsResult = await query(friendsQuery, [userInfoIdx]);
-        
-        if(friendsResult.length > 0) return res.send(utils.successTrue(200, "전체 친구조회 성공", friendsResult));
+
+        if (friendsResult.length > 0) return res.send(utils.successTrue(200, "전체 친구조회 성공", friendsResult));
         return res.send(utils.successTrue(301, "친구가 없습니다"));
-        
+
     } catch (err) {
         logger.error(`App - getFriends Query error\n: ${err.message}`);
         return res.send(utils.successFalse(500, `Error: ${err.message}`));
@@ -37,7 +37,7 @@ exports.reqFriends = async function (req, res) {
     logger.info(`reqFriend - req:${requester}/ res:${responser}`)
     try {
         //자신에게 보낼때
-        if(!responser) return res.send(utils.successFalse(301, "요청할 사람을 선택해주세요."));
+        if (!responser) return res.send(utils.successFalse(301, "요청할 사람을 선택해주세요."));
         if (responser == requester) return res.send(utils.successFalse(303, "자신에게 요청을 보낼수 없습니다."));
         //응답자가 존재하는 사람인지 확인
         const isUser = await query(`SELECT userInfoIdx FROM userInfo WHERE userInfoIdx = ? AND status != 'DELETE'`, [responser])
@@ -76,9 +76,9 @@ exports.resFriends = async function (req, res) {
     const requester = req.body.requester
     logger.info(`resFriend - res:${responser}/ req:${requester}`)
     try {
-          //자신에게 보낼때
-         if (requester === responser) return res.send(utils.successFalse(303, "자신의 요청을 받을수 없습니다."));
-          //응답자가 존재하는 사람인지 확인
+        //자신에게 보낼때
+        if (requester === responser) return res.send(utils.successFalse(303, "자신의 요청을 받을수 없습니다."));
+        //응답자가 존재하는 사람인지 확인
         const isUser = await query(`SELECT userInfoIdx FROM userInfo WHERE userInfoIdx = ? AND status != 'DELETE'`, [requester])
         if (isUser.length === 0) return res.send(utils.successFalse(302, "존재하지 않는 사람입니다."));
         //요청받은게 있는지 확인
@@ -116,9 +116,9 @@ exports.rejFriends = async function (req, res) {
     const requester = req.body.requester
     logger.info(`rejFriend - res:${responser}/ req:${requester}`)
     try {
-          //자신에게 보낼때
-         if (requester === responser) return res.send(utils.successFalse(303, "자신의 요청을 받을수 없습니다."));
-          //응답자가 존재하는 사람인지 확인
+        //자신에게 보낼때
+        if (requester === responser) return res.send(utils.successFalse(303, "자신의 요청을 받을수 없습니다."));
+        //응답자가 존재하는 사람인지 확인
         const isUser = await query(`SELECT userInfoIdx FROM userInfo WHERE userInfoIdx = ? AND status != 'DELETE'`, [requester])
         if (isUser.length === 0) return res.send(utils.successFalse(302, "존재하지 않는 사람입니다."));
         //이전에 관계가 있는지 확인
@@ -152,7 +152,7 @@ exports.rejFriends = async function (req, res) {
 아직 친구아닌 (요청중/ 대기중) 사람조회
 status != 'FRIEND'
 */
-exports.getNotFriends = async function (req, res) {
+exports.getWaitingFriends = async function (req, res) {
     const userInfoIdx = req.verifiedToken.userInfoIdx
     try {
         const friendsQuery = `
@@ -163,9 +163,9 @@ exports.getNotFriends = async function (req, res) {
             WHERE f.requester = ? AND f.status != 'FRIEND' ;
             `;
         const friendsResult = await query(friendsQuery, [userInfoIdx]);
-        res.send(utils.successTrue(200, "친구 요청 조회 성공", friendsResult));
+        res.send(utils.successTrue(200, "대기중 조회 성공", friendsResult));
     } catch (err) {
-        logger.error(`App - getNotFriends Query error\n: ${err.message}`);
+        logger.error(`App - getWaitingFriends Query error\n: ${err.message}`);
         return res.send(utils.successFalse(500, `Error: ${err.message}`));
     }
 };
@@ -174,6 +174,26 @@ exports.getNotFriends = async function (req, res) {
 2020.01.
 친구 이름 변경
 */
+exports.changeFriendName = async function (req, res) {
+    const userInfoIdx = req.verifiedToken.userInfoIdx
+    const friendIdx = req.body.friendIdx;
+    const customName = req.body.customName;
+    if (!friendIdx || !customName) return res.send(utils.successFalse(301, "친구와 변경할 이름을 입력해주세요"));
+    try {
+        const findFriend = await query(`SELECT friends.responserName FROM friends WHERE requester = ? AND responser = ? AND status = 'FRIEND';`, [userInfoIdx, friendIdx])
+        if (findFriend.length == 1) {
+            const friendNameQuery = `
+            UPDATE friends SET responserName = ? WHERE requester = ? and responser = ?;
+            `;
+            const friendNameResult = await query(friendNameQuery, [customName, userInfoIdx, friendIdx]);
+            return res.send(utils.successTrue(200, "친구 이름 변경 성공"));
+        } else return res.send(utils.successFalse(302, "친구사이가 아닙니다"));
+
+    } catch (err) {
+        logger.error(`App - getWaitingFriends Query error\n: ${err.message}`);
+        return res.send(utils.successFalse(500, `Error: ${err.message}`));
+    }
+};
 
 
 

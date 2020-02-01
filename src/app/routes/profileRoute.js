@@ -3,7 +3,7 @@ module.exports = function(app){
     const jwtMiddleware = require('../../../config/jwtMiddleware');
 
     app.get('/app/profile',jwtMiddleware, profile.getProfile);
-    app.route('/app/profileImg').patch(jwtMiddleware, profile.patchProfileImg);
-    app.route('/app/chatImg').patch(jwtMiddleware, profile.patchChatImg);
+    app.route('/app/profileimg').patch(jwtMiddleware, profile.patchProfileImg);
+    app.route('/app/chatimg').patch(jwtMiddleware, profile.patchChatImg);
 
 };
