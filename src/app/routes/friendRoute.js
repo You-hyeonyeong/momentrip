@@ -7,5 +7,6 @@ module.exports = function(app){
     app.route('/app/resfriend').post(jwtMiddleware, friend.resFriends);
     app.route('/app/rejfriend').post(jwtMiddleware, friend.rejFriends);
     app.route('/app/friendname').patch(jwtMiddleware, friend.changeFriendName);
+    app.route('/app/friendgroup').patch(jwtMiddleware, friend.changeFriendGroup);
 
 };

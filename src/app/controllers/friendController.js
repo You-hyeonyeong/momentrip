@@ -171,7 +171,7 @@ exports.getWaitingFriends = async function (req, res) {
 };
 
 /**
-2020.01.
+2020.02.01
 친구 이름 변경
 */
 exports.changeFriendName = async function (req, res) {
@@ -186,6 +186,7 @@ exports.changeFriendName = async function (req, res) {
             UPDATE friends SET responserName = ? WHERE requester = ? and responser = ?;
             `;
             const friendNameResult = await query(friendNameQuery, [customName, userInfoIdx, friendIdx]);
+            logger.info(`친구이름변경 ${userInfoIdx} -> ${friendIdx} : ${customName}`)
             return res.send(utils.successTrue(200, "친구 이름 변경 성공"));
         } else return res.send(utils.successFalse(302, "친구사이가 아닙니다"));
 
@@ -195,5 +196,30 @@ exports.changeFriendName = async function (req, res) {
     }
 };
 
-
+/**
+2020.02.01
+친구 그룹 변경
+*/
+exports.changeFriendGroup = async function (req, res) {
+    const userInfoIdx = req.verifiedToken.userInfoIdx
+    const friendIdx = req.body.friendIdx;
+    const groupName = req.body.groupName;
+    if (!friendIdx || !groupName) return res.send(utils.successFalse(301, "친구와 변경할 그룹 이름을 입력해주세요"));
+    try {
+        if (groupName == 'red' || groupName == 'blue' || groupName == 'yellow' || groupName == 'green' || groupName == 'purple') {
+            const findFriend = await query(`SELECT friends.responserName FROM friends WHERE requester = ? AND responser = ? AND status = 'FRIEND';`, [userInfoIdx, friendIdx])
+            if (findFriend.length == 1) {
+                const friendGroupNameQuery = `
+                UPDATE friends SET groupName = ? WHERE requester = ? and responser = ?;
+                `;
+                const friendGroupNameResult = await query(friendGroupNameQuery, [groupName, userInfoIdx, friendIdx]);
+                logger.info(`친구그룹변경 ${userInfoIdx} -> ${friendIdx} : ${groupName}`)
+                return res.send(utils.successTrue(200, "친구 그룹 변경 성공"));
+            } else return res.send(utils.successFalse(302, "친구사이가 아닙니다"));    
+        } else return res.send(utils.successFalse(303, "올바른 그룹명을 입력해주세요"));
+    } catch (err) {
+        logger.error(`App - getWaitingFriends Query error\n: ${err.message}`);
+        return res.send(utils.successFalse(500, `Error: ${err.message}`));
+    }
+};
 
