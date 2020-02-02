@@ -10,4 +10,7 @@ module.exports = function(app){
     app.route('/app/phonecheck').post(user.phoneCheck);
     app.route('/app/phonenum').post(jwtMiddleware, user.phoneNum);
 
+    app.get('/app/test', firebase.test);
+
+
 };

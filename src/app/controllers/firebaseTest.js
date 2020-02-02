@@ -18,7 +18,7 @@ exports.test = async function (req, res) {
                 console.log('Error getting documents', err);
             });
 
-            userDB.doc('22').update({battery : admin.firestore.FieldValue.increment(-10) })
+            userDB.doc('12').update({battery : admin.firestore.FieldValue.increment(-10) })
     return res.send(utils.successTrue(200, "firebaseDB 조회 완료"))
 }
 

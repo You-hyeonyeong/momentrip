@@ -12,12 +12,11 @@ exports.minusBatteryPerHour = async function (req, res) {
     const minusResult = await query(`UPDATE userInfo
                             SET battery = battery-10
                             WHERE hour(createdAt)+1 <> hour(NOW())
-                            AND status = 'ACTIVE'
                             AND battery > 0 ;`)
     const selectUser = await query(`
             SELECT userInfoIdx 
             FROM userInfo 
-            WHERE hour(createdAt)+1 <> hour(NOW()) AND status = 'ACTIVE' AND battery > 0;`)
+            WHERE hour(createdAt)+1 <> hour(NOW()) AND battery > 0;`)
 
             //enumerated for iterater
     selectUser.forEach(async (user) => {

@@ -64,6 +64,11 @@
             "date": 1580552190758,
             "name": "log/2020-02-01-smart-push.log",
             "hash": "0ef8de507f0708e92d178258f4e2f99e"
+        },
+        {
+            "date": 1580570764442,
+            "name": "log/2020-02-02-smart-push.log",
+            "hash": "7b7e12f57ae45327f4ddcaf3a9e6d7b8"
         }
     ]
 }

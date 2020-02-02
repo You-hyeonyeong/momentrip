@@ -5,23 +5,39 @@ const utils = require('../../../modules/resModule')
 /**
 2020.01.26
 컬러 그룹 조회
+변경하는거 생각해보아야함
  */
 exports.getColorGroup = async function (req, res) {
     const userInfoIdx = req.verifiedToken.userInfoIdx
     try {
-        const customName = await query(`select blue, red, yellow, green, purple from colorGroup where userInfoIdx = ?;`,[userInfoIdx]) //이름
-        const groupQuery = `
-        SELECT colorGroup.blue, colorGroup.red, colorGroup.yellow, colorGroup.green, colorGroup.purple,
-            (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'blue' AND status = 'FRIEND') as blueNum,
-            (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'red' AND status = 'FRIEND') as redNum,
-            (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'yellow' AND status = 'FRIEND') as yellowNum,
-            (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'green' AND status = 'FRIEND') as greenNum,
-            (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'purple' AND status = 'FRIEND') as purpleNum
+        //그룹 테스트 
+        const getGroupName = await query(`
+        SELECT colorGroup.blue, colorGroup.red, colorGroup.yellow, colorGroup.green, colorGroup.purple
         FROM colorGroup
         WHERE userInfoIdx = ?;
-        `;
-        const groupResult = await query(groupQuery, [userInfoIdx, userInfoIdx, userInfoIdx, userInfoIdx, userInfoIdx, userInfoIdx]);
-        return res.send(utils.successTrue(200, "전체 그룹조회 성공", groupResult[0]));
+        `, [userInfoIdx])
+        const getGroupNumName = await query(`SELECT groupName, count(1) FROM friends WHERE requester = ? GROUP BY groupName;`, [userInfoIdx])
+        const groupResult = {
+            "groupName" : getGroupName,
+            "groupNum" : getGroupNumName
+
+        }
+
+
+
+        // const customName = await query(`select blue, red, yellow, green, purple from colorGroup where userInfoIdx = ?;`,[userInfoIdx]) //이름
+        // const groupQuery = `
+        // SELECT colorGroup.blue, colorGroup.red, colorGroup.yellow, colorGroup.green, colorGroup.purple,
+        //     (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'blue' AND status = 'FRIEND') as blueNum,
+        //     (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'red' AND status = 'FRIEND') as redNum,
+        //     (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'yellow' AND status = 'FRIEND') as yellowNum,
+        //     (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'green' AND status = 'FRIEND') as greenNum,
+        //     (SELECT count(1) FROM friends WHERE requester = ? AND groupName = 'purple' AND status = 'FRIEND') as purpleNum
+        // FROM colorGroup
+        // WHERE userInfoIdx = ?;
+        // `;
+        // const groupResult = await query(groupQuery, [userInfoIdx, userInfoIdx, userInfoIdx, userInfoIdx, userInfoIdx, userInfoIdx]);
+        return res.send(utils.successTrue(200, "전체 그룹조회 성공", groupResult));
     } catch (err) {
         logger.error(`App - getColorGroup error\n: ${err.message}`);
         return res.send(utils.successFalse(500, `Error: ${err.message}`));
@@ -42,7 +58,7 @@ exports.changeGroupName = async function (req, res) {
     const customName = req.body.customName;
 
     try {
-        if(!groupName || !customName) return res.send(utils.successFalse(301, "입력되지 않은 값이 있습니다."));
+        if (!groupName || !customName) return res.send(utils.successFalse(301, "입력되지 않은 값이 있습니다."));
         if (groupName == 'red' || groupName == 'blue' || groupName == 'yellow' || groupName == 'green' || groupName == 'purple') {
             const changeNameQuery = `UPDATE colorGroup SET ${groupName} = ? WHERE userInfoIdx = ?; `;
             const changeNameResult = await query(changeNameQuery, [customName, userInfoIdx]);
