@@ -1,16 +1,15 @@
 module.exports = function(app){
     const user = require('../controllers/userController');
-    const firebase = require('../../app/controllers/firebaseTest')
     const jwtMiddleware = require('../../../config/jwtMiddleware');
-
+    
     app.get('/jwt', jwtMiddleware, user.jwtCheck);
-    app.route('/app/signup').post(user.signup);
-    app.route('/app/signin').post(user.signin);
-    app.route('/app/idcheck').post(user.idCheck);
-    app.route('/app/phonecheck').post(user.phoneCheck);
-    app.route('/app/phonenum').post(jwtMiddleware, user.phoneNum);
+    app.route('/signin').post(user.signin);
+    app.route('/signup').post(user.signup);
 
-    app.get('/app/test', firebase.test);
-
-
+    app.get('/mypage', jwtMiddleware, user.getMypage);
+    app.get('/mypage/:categoryIdx', jwtMiddleware, user.getByCategory);
+   
+  
+    //app.route('/feedback').post(user.feedBack)
+   
 };

@@ -3,17 +3,7 @@ const {logger} = require('./config/winston');
 var schedule = require('node-schedule');
 const scheduleModule = require('./modules/scheduleModule')
 
-const port = 3131;
+const port = 3333;
 express().listen(port);
-          
-schedule.scheduleJob('0 * * * *', function () {
-    scheduleModule.minusBatteryPerHour();
-    console.log('1시간마다 돌아가는 스케줄러');
-})
-
-schedule.scheduleJob('0 0 * * *', function () {
-    scheduleModule.checkInactiveUser();
-    console.log('자정에 돌아가는 스케줄러');
-})
 
 logger.info(`${process.env.NODE_ENV} - API Server Start At Port ${port}`);

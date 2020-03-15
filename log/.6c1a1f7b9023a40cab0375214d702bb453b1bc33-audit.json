@@ -6,69 +6,14 @@
     "auditLog": "log/.6c1a1f7b9023a40cab0375214d702bb453b1bc33-audit.json",
     "files": [
         {
-            "date": 1579600137938,
-            "name": "log/2020-01-21-smart-push.log",
-            "hash": "6301e764f584e643898eb6f37e5ab7f6"
+            "date": 1584184899681,
+            "name": "log/2020-03-14-smart-push.log",
+            "hash": "c35c0bb3724efa9185571286363f5741"
         },
         {
-            "date": 1579672318290,
-            "name": "log/2020-01-22-smart-push.log",
-            "hash": "4c570de0976cb6b83c1fe6118299c72c"
-        },
-        {
-            "date": 1579766125753,
-            "name": "log/2020-01-23-smart-push.log",
-            "hash": "550a1fd63ca092e2e061a0536ceedc0b"
-        },
-        {
-            "date": 1579837704074,
-            "name": "log/2020-01-24-smart-push.log",
-            "hash": "8e5208894bfd067a6d7c306f541534b8"
-        },
-        {
-            "date": 1579938147831,
-            "name": "log/2020-01-25-smart-push.log",
-            "hash": "23087c3a6eaceb5c4b4d4296d10e72f1"
-        },
-        {
-            "date": 1580019403024,
-            "name": "log/2020-01-26-smart-push.log",
-            "hash": "c0efd45c11968afc2594cb5fda9dc3b5"
-        },
-        {
-            "date": 1580054230414,
-            "name": "log/2020-01-27-smart-push.log",
-            "hash": "1405755d617abba0e1f3edee86c97104"
-        },
-        {
-            "date": 1580141275467,
-            "name": "log/2020-01-28-smart-push.log",
-            "hash": "dd290e618f03818b706e71fe35c94091"
-        },
-        {
-            "date": 1580270293280,
-            "name": "log/2020-01-29-smart-push.log",
-            "hash": "1da6561e60f30b788823ddf5b9a110f6"
-        },
-        {
-            "date": 1580310576914,
-            "name": "log/2020-01-30-smart-push.log",
-            "hash": "ef0a092110a41a8af18edd6f94f5b997"
-        },
-        {
-            "date": 1580399585712,
-            "name": "log/2020-01-31-smart-push.log",
-            "hash": "6f4fef021b7192a267c94b98f6296ce8"
-        },
-        {
-            "date": 1580552190758,
-            "name": "log/2020-02-01-smart-push.log",
-            "hash": "0ef8de507f0708e92d178258f4e2f99e"
-        },
-        {
-            "date": 1580570764442,
-            "name": "log/2020-02-02-smart-push.log",
-            "hash": "7b7e12f57ae45327f4ddcaf3a9e6d7b8"
+            "date": 1584198000998,
+            "name": "log/2020-03-15-smart-push.log",
+            "hash": "21c7ca12d3a8b6565cc8742e2e126608"
         }
     ]
 }
